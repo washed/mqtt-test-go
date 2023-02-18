@@ -1,0 +1,45 @@
+version: "3.6"
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+
+services:
+  mqtt:
+    image: eclipse-mosquitto
+    hostname: mqtt
+    restart: always
+    volumes:
+      - type: bind
+        source: ./mosquitto/mosquitto.conf
+        target: /mosquitto/config/mosquitto.conf
+        read_only: true
+      - type: bind
+        source: ./mosquitto/password_file.conf
+        target: /mosquitto/config/password_file.conf
+        read_only: true
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    ports:
+      - 1883:1883
+      - 9001:9001
+
+  publish:
+    build:
+      context: .
+    restart: always
+    environment:
+      MQTT_BROKER_URL:
+      MQTT_BROKER_USERNAME:
+      MQTT_BROKER_PASSWORD:
+    command: "/usr/src/app/cmd/publish/main.go"
+
+  subscribe:
+    build:
+      context: .
+    restart: always
+    environment:
+      MQTT_BROKER_URL:
+      MQTT_BROKER_USERNAME:
+      MQTT_BROKER_PASSWORD:
+    command: "/usr/src/app/cmd/subscribe/main.go"
